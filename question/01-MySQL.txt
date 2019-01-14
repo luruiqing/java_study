@@ -1,0 +1,14 @@
+1、MySQL的索引采用怎样的数据结构？为什么不用二叉树？B树和B+树有什么区别？
+2、MySQL锁有哪些？
+3、MySQL默认的事务隔离级别是什么？
+4、MySQL索引有哪几种？
+5、explain的Extra中, 如果出现Using index表示什么意思？
+6、死锁产生的原因是什么？
+7、MySQL是怎么完成主从同步的？
+8、select语句如果慢该如何优化？
+9、int、int(5)、int(10)有什么区别？
+10、数据库是否支持emoji表情, 如果不支持该如何操作？
+11、InnoDB引擎的行锁是怎么实现的？
+12、binlog有哪几种格式？使用canal时设置成哪种？
+13、MySQL的join原理是怎样的？
+14、MyISAM和InnoDB有什么区别？

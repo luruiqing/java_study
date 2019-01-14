@@ -1,0 +1,20 @@
+1、volatile是怎么实现的？
+2、volatile和synchronized有什么区别？
+3、Java 6之后JVM对synchronized做了哪些优化？
+4、synchronized是公平锁还是不公平锁？是否可重入？
+5、ReentrantLock和synchronized有什么区别？
+6、AtomicLong和LongAdder有什么区别？
+7、ThreadLocal为什么会造成内存泄漏, 如何防止？
+8、Thread的ThreadLocalMap如何解决Hash冲突？
+9、CompletableFuture和Future相比有什么优点？
+10、线程池的任务处理策略是怎样的？
+11、Java内存划分1.7和1.8有哪些区别？
+12、Java的内存模型是怎样的？
+13、Java对象有哪几种引用方式？
+14、垃圾收集算法有哪几种？
+15、什么时候触发gc?
+16、解决多线程非安全有哪几种方式？
+17、CMS有几次STW？
+18、JVM怎么确定哪些对象应该回收？
+19、sleep()、wait()、yield()有什么区别？
+20、Thread.sleep(0)有什么用？

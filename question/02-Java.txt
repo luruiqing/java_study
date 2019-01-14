@@ -1,0 +1,9 @@
+1、hashMap中需要固定存放50个对象, 怎么初始化？
+2、hashMap的结构, 1.7和1.8有哪些区别？
+3、concurrentHashMap1.7和1.8有哪些区别？
+4、CopyOnWriteArrayList的原理和优缺点是什么？
+5、ArrayList如何扩容？
+6、通过Java反射能否获取到对象的私有属性？能否执行私有方法？
+7、HashSet是如何保证元素不重复的？
+8、TreeMap内部数据结构是怎样的？
+9、从BlockingQueue中取出元素可以通过take和poll方法, 这两种方法有什么区别？

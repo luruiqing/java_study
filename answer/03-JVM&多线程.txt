@@ -1,0 +1,89 @@
+1、volatile是怎么实现的？
+	加入volatile关键字时, 会多出一个lock前缀指令, 相当于一个内存屏障
+		(1)它会强制将对缓存的修改操作立即写入主存
+		(2)如果是写操作, 它会导致其他CPU中对应的缓存行无效
+		(3)它确保指令重排序时不会把其后面的指令排到内存屏障之前的位置, 也不会把前面的指令排到内存屏障的后面; 即在执行到内存屏障这句指令时, 在它前面的操作已经全部完成
+
+2、volatile和synchronized有什么区别？
+    volatile保证了线程的可见性和部分的有序性, synchronized保证了原子性、可见性以及有序性
+
+3、Java 6之后JVM对synchronized做了哪些优化？
+	使用了偏向锁、轻量级锁、自旋锁、锁消除等优化方式
+
+4、synchronized是公平锁还是不公平锁？是否可重入？
+	非公平锁, 可重入
+
+5、ReentrantLock和synchronized有什么区别？
+	(1)ReentrantLock基于JDK层面实现, synchronized基于JVM层面实现
+	(2)ReentrantLock默认是非公平锁, 初始化时可以使用公平锁, synchronized只能是非公平锁
+	(3)ReentrantLock底层主要通过AQS来实现, 效率更高
+
+6、AtomicLong和LongAdder有什么区别？
+	(1)LongAdder在AtomicLong的基础上将单点的更新压力分散到各个节点
+	(2)LongAdder在低并发时的casBase操作等价于AtomicLong中的cas操作, 高并发时LongAdder更高效
+	(3)LongAdder在统计的时候如果有并发更新, 可能导致统计的数据有误差
+
+7、ThreadLocal为什么会造成内存泄漏, 如何防止？
+	(1)ThreadLocalMap的key固定是ThreadLocal对象, 但是key是弱引用类型的, value不是, 线程一直没有终止(例如使用线程池), value一直不能被回收
+	(2)每次使用完ThreadLocal, 都调用它的remove()方法及时清除数据
+
+8、Thread的ThreadLocalMap如何解决Hash冲突？
+	采用线性探测的方式, 就是简单的步长加1或减1, 寻找下一个相邻的位置, 因为解决Hash冲突的效率很低, 所以一个线程不要使用太多的ThreadLocal, 否则会极大的增加Hash冲突的可能
+
+9、CompletableFuture和Future相比有什么优点？
+	(1)JDK8才新加入的实现类, 扩展了Future的功能, 因为实现了Future接口, 所以可以像Future那样使用它
+	(2)可以配置执行的线程池
+	(3)自带多任务组合方法allOf和anyOf
+	(4)CompletableFuture类提供了异常管理的机制, 可以抛出/管理异步任务执行中发生的异常
+	(5)如果异步任务之间互相独立, 或者他们之间某一些的结果是另一些的输入, 则可以将这些异步任务合并成一个任务
+
+10、线程池的任务处理策略是怎样的？
+	(1)当任务数小于corePoolSize时, 创建新线程执行任务
+	(2)当任务数大于corePoolSize时, 将任务放到阻塞队列中
+	(3)当阻塞任务队列已满, 新建线程来执行任务
+	(4)当线程数达到maximumPoolSize时, 按照拒绝任务策略来处理
+
+11、Java内存划分1.7和1.8有哪些区别？
+	(1)移除了永久代(PermGen), 替换为元空间(Metaspace)
+	(2)永久代中的class信息移到了本地内存
+	(3)永久代中字符串移到了堆内存中
+
+12、Java的内存模型是怎样的？
+	(1)所有的变量都是存在主存当中
+	(2)每个线程都有自己的工作内存
+	(3)线程对变量的所有操作都必须在工作内存中进行, 而不能直接对主存进行操作
+	(4)每个线程不能访问其他线程的工作内存
+	(5)要想并发程序正确地执行, 必须要保证原子性、可见性以及有序性。只要有一个没有被保证, 就有可能会导致程序运行不正确
+
+13、Java对象有哪几种引用方式？
+	(1)强引用: 不会被回收
+	(2)软引用: 内存不足时回收
+	(3)弱引用: 垃圾回收时回收
+	(4)虚引用: 任何时候都可能被回收
+
+14、垃圾收集算法有哪几种？
+	(1)标记-清除算法
+	(2)复制算法
+	(3)标记-整理算法
+
+15、什么时候触发gc?
+	eden区已满时触发young gc
+	old区、metaspace区已满时触发full gc
+
+16、解决多线程非安全有哪几种方式？
+	synchronized、volatile、ReentrantLock、ThreadLocal、Atomic、使用线程安全的类
+
+17、CMS有几次STW？
+	两次, 初始标记和重新标记阶段
+
+18、JVM怎么确定哪些对象应该回收？
+	(1)引用计数算法
+	(2)根搜索算法
+
+19、sleep()、wait()、yield()有什么区别？
+    sleep: 使线程进入阻塞状态, 但不释放对象锁, 低优先级的线程能得到执行的机会
+    wait: 使线程进入阻塞状态, 并释放对象锁, 必须在synchronized同步块中通过notify()、notifyAll()方法唤醒
+    yield: 使线程进入就绪状态, 不释放对象锁, 只能使同优先级或更高优先级的线程得到执行的机会
+
+20、Thread.sleep(0)有什么用？
+    触发操作系统立刻重新进行一次CPU竞争, 特别是在大循环里会用到, 使其他线程可以得到执行的机会
