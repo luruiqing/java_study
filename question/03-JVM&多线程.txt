@@ -18,3 +18,4 @@
 18、JVM怎么确定哪些对象应该回收？
 19、sleep()、wait()、yield()有什么区别？
 20、Thread.sleep(0)有什么用？
+21、什么是AQS？

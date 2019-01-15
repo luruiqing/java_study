@@ -87,3 +87,8 @@
 
 20、Thread.sleep(0)有什么用？
     触发操作系统立刻重新进行一次CPU竞争, 特别是在大循环里会用到, 使其他线程可以得到执行的机会
+
+21、什么是AQS？
+    (1)AQS提供了一种实现阻塞锁和一系列依赖FIFO等待队列(使用双向链表来实现)的底层同步抽象类
+    (2)AQS同时提供了互斥模式(exclusive, 只有一个线程能执行, 如ReentrantLock)和共享模式(shared, 多个线程可同时执行, 如Semaphore/CountDownLatch)两种不同的同步逻辑
+    (3)AQS维护了一个volatile int类型的变量state, 表示当前同步的状态

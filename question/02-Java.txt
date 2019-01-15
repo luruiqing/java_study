@@ -7,3 +7,4 @@
 7、HashSet是如何保证元素不重复的？
 8、TreeMap内部数据结构是怎样的？
 9、从BlockingQueue中取出元素可以通过take和poll方法, 这两种方法有什么区别？
+10、HashMap的容量为什么是2的倍数？

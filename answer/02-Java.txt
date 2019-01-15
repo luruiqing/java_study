@@ -35,6 +35,7 @@
 9、从BlockingQueue中取出元素可以通过take和poll方法, 这两种方法有什么区别？
     队列为空时, take会阻塞, 直到队列中有可用元素为止; poll直接返回null
 
-
+10、HashMap的容量为什么是2的倍数？
+	indexFor可以用位运算代替取模, 而且hash会更加平均的分布, 减少冲突
 
 
