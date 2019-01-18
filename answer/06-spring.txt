@@ -1,0 +1,5 @@
+1、AOP实现原理是什么？
+	基于动态代理和反射来实现, Spring AOP提供了对JDK动态代理的支持以及CGLib两种代理方式的支持
+2、如果想在bean生成并装配完成之后执行自己的逻辑代码该怎么实现？
+    InitializingBean, init-method
+3、
