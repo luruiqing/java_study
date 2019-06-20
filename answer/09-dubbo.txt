@@ -1,0 +1,73 @@
+1、dubbo配置项可以通过哪些方式来配置, 优先级是怎样的？
+    JVM启动参数配置 -> xml配置 -> dubbo.properties
+
+2、consumer和provider都配了相同的参数时优先使用哪个？
+    consumer
+
+3、Dubbo的SPI和JDK标准的SPI有什么区别?
+    JDK标准的SPI会一次性实例化扩展点所有实现, Dubbo的SPI可以按照名称来加载指定的实现类
+    Dubbo的SPI增加了对扩展点IOC的支持
+    如果JDK标准的扩展点加载失败, 该扩展点的名称也获取不到
+
+4、Dubbo客户端向服务端发送多个请求, 然后会进入阻塞状态等待服务端的响应, 得到响应之后客户端如何把请求和响应进行匹配?
+    客户端发送请求时会带上唯一的requestId, 然后把DefaultFuture对象根据ID保存在Map中, 响应对象中也会带上requestId,
+    因此可以根据该ID获取到DefaultFuture对象, 进而获取到返回的Result对象
+
+5、dubbo怎样和zookeeper进行交互?
+    (1)Dubbo启动时, Consumer和Provider都会把自身的URL格式化为字符串, 然后注册到zookeeper相应节点下, Consumer在启动时还会订阅…/providers目录
+    (2)ZookeeperRegistry在实例化时创建了一个定时任务, 每隔5S执行retry()方法, 重试注册/取消注册/订阅/取消订阅
+    (3)Dubbo注册了zookeeper的StateListener, Client与Server断开连接后, 会定时的不断尝试重新连接, 当重新连接上时, 会将已经注册和订阅的URL添加到失败集合中, 通过定时任务重新注册和订阅
+    (4)providers和consumers目录本身是持久节点, 而它们的子节点是临时节点, 因此服务端和客户端断开时子节点会自动删除
+
+6、dubbo的filter调用链是怎样生成的？
+    (1)通过ProtocolFilterWrapper中buildInvokerChain方法生成调用链, 通过dubbo的SPI机制, 优先生成dubbo默认的Filter, 然后进行排序(根据Activate注解的order属性), 然后生成自定义的filter
+    (2)如果配置的自定义filter中, filter名前面加了"-“, 则表示去掉该filter, 如果包括"default", 则用于自定义filter排序,
+       例如"filter1, defualt, filter2, -monitor", 表示filter链的顺序为filter1, 默认的filter链(去掉monitorFilter), filter2
+	(3)如果默认filter的Activate注解设置了value属性, 则URL中必须包含该参数值时该filter才能起作用,
+	   例如activelimit设置了value属性为actives, 则<dubbo:consumer>中需配置actives属性值时该filter才能起作用(或者手动配置<dubbo:consumer>的filter)
+
+7、注册中心挂了对RPC调用有什么影响, 为什么？
+    (1)没有影响, consumer端在启动之后会订阅provider, 订阅成功时会把url放到缓存中, 然后生成Invoker对象列表并返回, consumer端会一直持有Invoker对象列表
+    (2)consumer启动时如果注册中心挂了, 订阅provider会失败, 此时会从缓存中获取url并生成Invoker对象列表并返回
+    (3)consumer启动成功之后如果注册中心挂了, 因为consumer端已经持有了Invoker对象列表, 不会和注册中心交互, 因此不会有影响
+    (4)订阅失败的处理在com.alibaba.dubbo.registry.support.FailbackRegistry#subscribe方法中
+    (5)订阅成功更新缓存的处理在com.alibaba.dubbo.registry.support.AbstractRegistry#saveProperties方法中
+
+8、dubbo的负载均衡策略有哪些?
+    (1)Invoker的默认权重100, 服务运行未满10分钟时, 权重是按照运行时间的一个百分比
+	(2)random: 加权随机负载均衡, 权重都相同时随机获取一个Invoker
+	(3)leastactive: 加权最小活跃数负载均衡, 如果有多个Invoker具有最小活跃数, 算法和random一致
+	(4)consistentHash: 使用Ketama一致性hash算法, 默认虚拟节点是160, 即每个Invoker会变成160个虚拟节点
+	(5)roundrobin: 加权轮询负载均衡, Dubbo2.6.5版本中进行了优化, 采用平滑加权轮询算法, 防止短时间内请求落到同一个权重大的Invoker上, 可以平滑过渡, 同时解决了某个Invoker的权重特大时的性能问题
+
+9、dubbo的优雅停机怎么实现？
+    通过JDK的ShutdownHook来实现, 使用”kill -9 PID”等强制关闭指令是不会执行优雅停机的
+    2.5.4版本存在bug, 没有实现优雅停机
+
+10、Dubbo的集群容错模式有哪些?
+	(1)默认是failover模式, 失败会进行重试(优先重试当前未调用的其他provider), 默认重试2次(共执行3次), 可通过retries配置项设置重试次数, 通常用于读操作
+	(2)failfast表示快速失败, 只发起一次调用, 失败立即报错, 通常用于非幂等性的写操作
+	(3)failsafe模式在出现异常时直接忽略, 通常用于写入审计日志等操作
+	(4)failback模式在调用失败时返回一个空结果给服务提供者, 并通过定时任务对失败的调用进行重传，适合执行消息通知等操作
+	(5)forking模式会在运行时通过线程池创建多个线程, 并发调用多个服务提供者, 只要有一个服务提供者成功则返回结果, 通常用于实时性要求较高的操作
+	(6)broadcast模式会逐个调用每个服务提供者, 如果其中一台报错在循环调用结束后会抛出异常, 通常用于通知所有提供者更新缓存或日志等本地资源信息
+
+11、一个服务能否支持同时暴露多种协议？
+    可以
+
+12、dubbo长连接和心跳是怎么实现的?
+	(1)通过底层netty的keepalive=true和心跳检测来实现长连接
+	(2)dubbo的心跳默认是60s, 如果60s内没有接收到消息就会发送心跳消息, 如果连着3次(180s)没有收到心跳响应, provider会关闭channel, consumer会进行重连
+	(3)provider端在HeaderExchangeServer中启动心跳定时任务, consumer端在HeaderExchangeClient中启动心跳定时任务, 在HeartbeatHandler中处理心跳的请求和响应
+
+13、dubbo的线程派发模式有哪些?
+	(1)all: dubbo默认的派发模式, 所有消息都派发到线程池, 包括请求、响应、连接事件、断开事件等
+	(2)direct: 所有消息都不派发到线程池, 全部在IO线程上直接执行
+	(3)message: 只有请求和响应消息派发到线程池, 其它消息均在IO线程上执行
+	(4)execution: 只有请求消息派发到线程池, 不含响应, 其它消息均在IO线程上执行
+	(5)connection: 在IO线程上, 将连接断开事件放入队列, 有序逐个执行, 其它消息派发到线程池
+
+14、dubbo的设计有哪些优点?
+	(1)采用Microkernel+Plugin模式, Microkernel只负责组装Plugin, Dubbo自身的功能也是通过扩展点实现的, 也就是Dubbo的所有功能点都可被用户自定义扩展所替换
+	(2)采用URL作为配置信息的统一格式, 所有扩展点都通过传递URL携带配置信息
+	(3)采用增量式扩展设计, 这样能将新功能增量到旧功能上, 并保持原来结构的简单性
